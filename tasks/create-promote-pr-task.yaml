@@ -53,7 +53,7 @@ spec:
         git push -u auth-origin HEAD
     - name: create-pull-request
       workingDir: $(workspaces.workspace.path)
-      image: quay.io/siamaksade/python-oc
+      image: quay.io/ozyohthree/python-oc
       script: |
         #!/usr/bin/env python3
 

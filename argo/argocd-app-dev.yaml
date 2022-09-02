@@ -9,7 +9,7 @@ spec:
   project: spring-petclinic
   source:
     path: environments/dev
-    repoURL: https://github.com/siamaksade/spring-petclinic-config
+    repoURL: https://github.com/ozyohthree/spring-petclinic-config
     targetRevision: HEAD
   syncPolicy:
     automated:

@@ -91,7 +91,7 @@ command.install() {
 
   info "Deploying pipeline and tasks to $cicd_prj namespace"
   oc apply -f tasks -n $cicd_prj
-  sed "s#https://github.com/siamaksade#http://$GITEA_HOSTNAME/gitea#g" pipelines/pipeline-build.yaml | oc apply -f - -n $cicd_prj
+  sed "s#https://github.com/ozyohthree#http://$GITEA_HOSTNAME/gitea#g" pipelines/pipeline-build.yaml | oc apply -f - -n $cicd_prj
 
   oc apply -f triggers -n $cicd_prj
 

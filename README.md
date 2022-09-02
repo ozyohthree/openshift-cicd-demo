@@ -46,7 +46,7 @@ Argo CD continuously monitor the configurations stored in the Git repository and
 
     ```text
     $ oc new-project demo
-    $ git clone https://github.com/siamaksade/openshift-cicd-demo
+    $ git clone https://github.com/ozyohthree/openshift-cicd-demo
     $ demo.sh install
     ```
 
@@ -96,7 +96,7 @@ You might have just installed the OpenShift Pipelines operator on the cluster an
 
 **Q: why do I get `Unable to deploy revision: permission denied` when I manually sync an Application in Argo CD dashboard?**
 
-When you log into Argo CD dashboard using your OpenShift credentials, your access rights in Argo CD will be assigned based on your access rights in OpenShift. The Argo CD instance in this demo is [configured](https://github.com/siamaksade/openshift-cicd-demo/blob/main/argo/argocd.yaml#L21) to map `kubeadmin` and any users in the `ocp-admins` groups in OpenShift to an Argo CD admin user. Note that `ocp-admins` group is not available in OpenShift by default. You can create this group using the following commands:
+When you log into Argo CD dashboard using your OpenShift credentials, your access rights in Argo CD will be assigned based on your access rights in OpenShift. The Argo CD instance in this demo is [configured](https://github.com/ozyohthree/openshift-cicd-demo/blob/main/argo/argocd.yaml#L21) to map `kubeadmin` and any users in the `ocp-admins` groups in OpenShift to an Argo CD admin user. Note that `ocp-admins` group is not available in OpenShift by default. You can create this group using the following commands:
 
 ```
 # create ocp-admins group
