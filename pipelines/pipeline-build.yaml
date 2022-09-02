@@ -147,7 +147,7 @@ spec:
       - name: GIT_PASSWORD
         value: openshift
       - name: CURRENT_IMAGE
-        value: quay.io/ozyohthree/spring-petclinic:latest
+        value: quay.io/ohthree/spring-petclinic:latest
       - name: NEW_IMAGE
         value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/spring-petclinic
       - name: NEW_DIGEST
