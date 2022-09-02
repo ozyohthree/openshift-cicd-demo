@@ -21,7 +21,7 @@ spec:
               fieldPath: metadata.namespace
     steps:
       - name: init-gitea
-        image: quay.io/ozyohthree/python-oc
+        image: quay.io/ohthree/python-oc
         script: |
           #!/usr/bin/env python3
 
