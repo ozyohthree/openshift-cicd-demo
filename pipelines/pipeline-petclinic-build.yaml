@@ -1,0 +1,198 @@
+﻿apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: petclinic-build
+  namespace: demo-cicd
+spec:
+  params:
+    - default: >-
+        http://gitea-demo-cicd.apps.cluster-76ndn.76ndn.sandbox814.opentlc.com/gitea/spring-petclinic
+      description: The application git repository
+      name: APP_SOURCE_GIT
+      type: string
+    - default: master
+      description: The application git revision
+      name: APP_SOURCE_REVISION
+      type: string
+    - default: >-
+        http://gitea-demo-cicd.apps.cluster-76ndn.76ndn.sandbox814.opentlc.com/gitea/spring-petclinic-config
+      description: The application manifests git repository
+      name: APP_MANIFESTS_GIT
+      type: string
+    - default: latest
+      description: The application image tag to build
+      name: APP_IMAGE_TAG
+      type: string
+  results:
+    - description: The image digest built in the pipeline
+      name: APP_IMAGE_DIGETST
+      value: $(tasks.build-image.results.IMAGE_DIGEST)
+    - description: The image url built in the pipeline
+      name: APP_IMAGE_URL
+      value: $(tasks.build-image.results.IMAGE_NAME)
+  tasks:
+    - name: source-clone
+      params:
+        - name: url
+          value: $(params.APP_SOURCE_GIT)
+        - name: revision
+          value: $(params.APP_SOURCE_REVISION)
+        - name: depth
+          value: '0'
+        - name: subdirectory
+          value: spring-petclinic
+        - name: deleteExisting
+          value: 'true'
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: workspace
+    - name: unit-tests
+      params:
+        - name: GOALS
+          value:
+            - package
+            - '-f'
+            - spring-petclinic
+      runAfter:
+        - source-clone
+      taskRef:
+        kind: Task
+        name: maven
+      workspaces:
+        - name: source
+          workspace: workspace
+        - name: maven-settings
+          workspace: maven-settings
+    - name: code-analysis
+      params:
+        - name: GOALS
+          value:
+            - install
+            - 'sonar:sonar'
+            - '-f'
+            - spring-petclinic
+            - '-Dsonar.host.url=http://sonarqube:9000'
+            - '-Dsonar.userHome=/tmp/sonar'
+            - '-DskipTests=true'
+      runAfter:
+        - unit-tests
+      taskRef:
+        kind: Task
+        name: maven
+      workspaces:
+        - name: source
+          workspace: workspace
+        - name: maven-settings
+          workspace: maven-settings
+    - name: security-scan
+      params:
+        - name: GOALS
+          value:
+            - '--version'
+            - '-f'
+            - spring-petclinic
+      runAfter:
+        - unit-tests
+      taskRef:
+        kind: Task
+        name: maven
+      workspaces:
+        - name: source
+          workspace: workspace
+        - name: maven-settings
+          workspace: maven-settings
+    - name: release-app
+      params:
+        - name: GOALS
+          value:
+            - deploy
+            - '-f'
+            - spring-petclinic
+            - '-DskipTests=true'
+            - >-
+              -DaltDeploymentRepository=nexus::default::http://nexus:8081/repository/maven-releases/
+            - >-
+              -DaltSnapshotDeploymentRepository=nexus::default::http://nexus:8081/repository/maven-snapshots/
+      runAfter:
+        - code-analysis
+        - security-scan
+      taskRef:
+        kind: Task
+        name: maven
+      workspaces:
+        - name: source
+          workspace: workspace
+        - name: maven-settings
+          workspace: maven-settings
+    - name: build-image
+      params:
+        - name: TLSVERIFY
+          value: 'false'
+        - name: MAVEN_MIRROR_URL
+          value: 'http://nexus:8081/repository/maven-public/'
+        - name: PATH_CONTEXT
+          value: spring-petclinic/target
+        - name: IMAGE_NAME
+          value: >-
+            image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/spring-petclinic
+        - name: IMAGE_TAG
+          value: $(params.APP_IMAGE_TAG)
+      runAfter:
+        - release-app
+      taskRef:
+        kind: Task
+        name: s2i-java-11
+      workspaces:
+        - name: source
+          workspace: workspace
+    - name: update-deployment
+      params:
+        - name: GIT_REPOSITORY
+          value: $(params.APP_MANIFESTS_GIT)
+        - name: GIT_USERNAME
+          value: gitea
+        - name: GIT_PASSWORD
+          value: openshift
+        - name: CURRENT_IMAGE
+          value: 'quay.io/ohthree/spring-petclinic:latest'
+        - name: NEW_IMAGE
+          value: >-
+            image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/spring-petclinic
+        - name: NEW_DIGEST
+          value: $(tasks.build-image.results.IMAGE_DIGEST)
+        - name: KUSTOMIZATION_PATH
+          value: environments/dev
+      runAfter:
+        - build-image
+      taskRef:
+        kind: Task
+        name: git-update-deployment
+      workspaces:
+        - name: workspace
+          workspace: workspace
+    - name: create-promote-pr
+      params:
+        - name: GIT_REPOSITORY
+          value: $(params.APP_MANIFESTS_GIT)
+        - name: GIT_USERNAME
+          value: gitea
+        - name: GIT_PASSWORD
+          value: openshift
+        - name: COPY_FROM_PATH
+          value: environments/dev
+        - name: COPY_TO_PATH
+          value: environments/stage
+      runAfter:
+        - update-deployment
+      taskRef:
+        kind: Task
+        name: create-promote-pull-request
+      workspaces:
+        - name: workspace
+          workspace: workspace
+  workspaces:
+    - name: workspace
+    - name: maven-settings

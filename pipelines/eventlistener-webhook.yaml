@@ -1,0 +1,28 @@
+﻿apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: webhook
+  namespace: demo-cicd
+spec:
+  namespaceSelector: {}
+  resources: {}
+  serviceAccountName: pipeline
+  triggers:
+    - bindings:
+        - kind: TriggerBinding
+          ref: gogs-triggerbinding
+      interceptors:
+        - name: add short sha
+          params:
+            - name: overlays
+              value:
+                - expression: body.after.truncate(7)
+                  key: short_sha
+                - expression: 'body.ref.split(''/'')[2]'
+                  key: branch_name
+          ref:
+            kind: ClusterInterceptor
+            name: cel
+      name: petclinic-webhook
+      template:
+        ref: petclinic-trigger-template

@@ -1,0 +1,19 @@
+﻿apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: spring-petclinic
+  namespace: demo-cicd
+spec:
+  destination:
+    namespace: demo-dev
+    server: 'https://kubernetes.default.svc'
+  project: spring-petclinic
+  source:
+    path: environments/dev
+    repoURL: >-
+      http://gitea-demo-cicd.apps.cluster-76ndn.76ndn.sandbox814.opentlc.com/gitea/spring-petclinic-config
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
