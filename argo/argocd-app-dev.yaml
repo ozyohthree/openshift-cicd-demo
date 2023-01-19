@@ -7,7 +7,7 @@ spec:
     namespace: demo-dev
     server: https://kubernetes.default.svc
   project: spring-petclinic
-   :
+  source:
     path: environments/dev
     repoURL: https://github.com/ozyohthree/spring-petclinic-config
     targetRevision: HEAD
