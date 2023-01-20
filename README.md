@@ -14,10 +14,10 @@ This repo is a CI/CD demo using [Tekton Pipelines](http://www.tekton.dev) for co
   <img width="580" src="docs/images/projects.svg">
 </p>
 
-## Prerequisites
+## Prerequisites (Install below Operators before beginning)
 
 * OpenShift Pipelines 1.7
-* OpenShift GitOps 1.5
+* OpenShift GitOps 1.7 
 ## Continuous Integration
 
 On every push to the `spring-petclinic` git repository on Gitea git server, the following steps are executed within the Tekton pipeline:
