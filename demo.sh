@@ -95,7 +95,7 @@ command.install() {
 
   oc apply -f triggers -n $cicd_prj
 
-  info "Initiatlizing git repository in Gitea and configuring webhooks"
+  info "Initializing git repository in Gitea and configuring webhooks"
   sed "s/@HOSTNAME/$GITEA_HOSTNAME/g" config/gitea-configmap.yaml | oc create -f - -n $cicd_prj
   oc rollout status deployment/gitea -n $cicd_prj
   oc create -f config/gitea-init-taskrun.yaml -n $cicd_prj
